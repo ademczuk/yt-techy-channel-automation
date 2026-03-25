@@ -1,0 +1,7 @@
+{
+  "githubTrending": {
+    "enabled": true,
+    "since": "daily",
+    "language": ""
+  }
+}

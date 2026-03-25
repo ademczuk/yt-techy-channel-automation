@@ -1,0 +1,10 @@
+node_modules/
+out/
+dist/
+.remotion/
+*.tsbuildinfo
+.env
+build/
+runtime/episodes/
+runtime/voice-config.json
+public/runtime/

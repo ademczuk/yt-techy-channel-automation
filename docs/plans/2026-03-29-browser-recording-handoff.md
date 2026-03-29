@@ -319,14 +319,3 @@ The most promising long-term direction appears to be:
 - use `Recordly` or `Cursorful` as the premium smoothing/editor shell if their capture path becomes reliable
 - keep `Remotion` as the final packaging and episode compositor
 
-### Publishing Safety
-
-Before pushing this repo publicly:
-
-- do not include live `runtime/*.env` files
-- do not include `screen-demos/`
-- do not include `midscene_run/`
-- do not include any local API keys
-- do not include any username-specific local home-directory paths if avoidable
-
-At the time of writing, the live local env files contain real keys and must stay excluded from Git.

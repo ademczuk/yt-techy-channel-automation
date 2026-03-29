@@ -163,7 +163,7 @@ async function executeStep(
   const handle = await resolveElement(page, step);
   if (!handle) {
     if (step.optional) {
-      return { record: false, optionalNavigationOpen: false };
+      return { record: false, optionalNavigationOpen: false, cursorPosition };
     }
     throw new Error(`Could not resolve element for step ${step.label}`);
   }

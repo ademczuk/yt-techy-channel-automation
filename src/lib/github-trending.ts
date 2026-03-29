@@ -35,7 +35,7 @@ export function parseGitHubTrending(
         collectedAt,
       } satisfies CandidateTool;
     })
-    .filter((candidate): candidate is CandidateTool => candidate !== null);
+    .filter((candidate): candidate is NonNullable<typeof candidate> => candidate !== null) as CandidateTool[];
 }
 
 function stripHtml(value?: string): string | undefined {

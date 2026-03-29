@@ -22,6 +22,7 @@ interface WalkthroughTarget {
   selectors: string[];
   note: string;
   dwellMs: number;
+  action?: "hover" | "click";
 }
 
   const TARGETS: WalkthroughTarget[] = [
@@ -30,42 +31,49 @@ interface WalkthroughTarget {
     selectors: ['[itemprop="name"] a', 'strong[itemprop="name"] a'],
     note: "Repo name and owner.",
     dwellMs: 2600,
+    action: "hover",
   },
   {
     label: "repo-description",
     selectors: ['[data-testid="repository-description"]', 'p.f4.my-3'],
     note: "What the project does.",
     dwellMs: 3000,
+    action: "hover",
   },
   {
     label: "star-button",
     selectors: ['#repo-stars-counter-star', 'a[href$="/stargazers"]', 'button[aria-label*="star"]'],
     note: "Traction and social proof.",
     dwellMs: 2200,
+    action: "hover",
   },
   {
     label: "about-sidebar",
     selectors: ['[aria-label="About"]', 'div.Layout-sidebar'],
     note: "Links, releases, and extra metadata.",
     dwellMs: 2400,
+    action: "hover",
   },
   {
     label: "readme-start",
     selectors: ['#readme h1', 'article.markdown-body h1', '#readme h2', 'article.markdown-body h2'],
     note: "README opening section.",
     dwellMs: 3400,
+    action: "click",
   },
   {
-    label: "readme-section",
-    selectors: ['article.markdown-body h2', 'article.markdown-body h3', '#readme article h2'],
-    note: "A deeper section with more implementation detail.",
-    dwellMs: 3400,
+    label: "readme-link",
+    selectors: ['article.markdown-body a[href^="http"]', 'article.markdown-body a'],
+    note: "Click a real link inside the README to show exploration.",
+    dwellMs: 4000,
+    action: "click",
   },
   {
     label: "code-sample",
     selectors: ['article.markdown-body pre', 'article.markdown-body code', '#readme pre'],
     note: "Code or command example.",
     dwellMs: 3000,
+    action: "click",
   },
 ];
 
@@ -116,7 +124,9 @@ export async function runGitHubWalkthrough(
         break;
       }
 
-      const box = await target.locator.boundingBox();
+      // Since we might have navigated, refresh the locator dynamically
+      const activeLocator = page.locator(target.selector).first();
+      const box = await activeLocator.boundingBox().catch(() => null);
       if (!box) {
         continue;
       }
@@ -124,7 +134,7 @@ export async function runGitHubWalkthrough(
       await scrollIntoViewNaturally(page, box.y);
       await page.waitForTimeout(350);
 
-      const refreshed = await target.locator.boundingBox();
+      const refreshed = await activeLocator.boundingBox().catch(() => null);
       if (!refreshed) {
         continue;
       }
@@ -148,6 +158,33 @@ export async function runGitHubWalkthrough(
       });
 
       await lingerWithMicroMovement(page, cursor, target.dwellMs);
+
+      if (target.action === "click") {
+        await page.mouse.down();
+        await page.waitForTimeout(Math.random() * 50 + 40);
+        await page.mouse.up();
+        await page.waitForTimeout(1000); // let page react
+        
+        // Wait for potential navigation or media playback
+        try {
+          await page.waitForLoadState("networkidle", { timeout: 3000 }).catch(() => {});
+        } catch {}
+
+        // If URL changed significantly, hang out then go back
+        const newUrl = page.url();
+        if (newUrl !== options.repoUrl && !newUrl.includes("#")) {
+          // It navigated! Let's scroll around the new page to prove it's a real click.
+          await nudgeScroll(page);
+          await page.waitForTimeout(2000);
+          await page.goBack({ waitUntil: "domcontentloaded" }).catch(() => {});
+          await page.waitForTimeout(1500);
+          
+          // Must reinstall the SVG cursor because the page reloaded!
+          await installWindowsCursorOverlay(page);
+          // And we might need to recreate the mouse position state here
+        }
+      }
+
       await nudgeScroll(page);
     }
   }
@@ -260,7 +297,7 @@ export async function launchVisibleChromium(browser: Browser): Promise<Page> {
   return page;
 }
 
-async function resolveTargets(page: Page): Promise<Array<{ label: string; selector: string; locator: ReturnType<Page["locator"]>; note: string; dwellMs: number }>> {
+async function resolveTargets(page: Page): Promise<Array<{ label: string; selector: string; locator: ReturnType<Page["locator"]>; note: string; dwellMs: number; action?: "hover" | "click" }>> {
   const resolved = [];
 
   for (const target of TARGETS) {
@@ -273,6 +310,7 @@ async function resolveTargets(page: Page): Promise<Array<{ label: string; select
           locator,
           note: target.note,
           dwellMs: target.dwellMs,
+          action: target.action,
         });
         break;
       }

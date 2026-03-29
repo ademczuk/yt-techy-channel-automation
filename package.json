@@ -27,6 +27,7 @@
     "capture:test:cursorful:raw": "tsx scripts/test-cursorful-raw.ts"
   },
   "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6",
     "@remotion/bundler": "^4.0.0",
     "@remotion/cli": "^4.0.0",
     "@remotion/player": "^4.0.0",

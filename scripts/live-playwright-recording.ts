@@ -1,5 +1,5 @@
 import { chromium, type Page } from "playwright";
-import robot from "robotjs";
+import { mouse, Point, straightTo, Button } from "@nut-tree-fork/nut-js";
 import { buildLiveRepoSteps } from "../src/lib/live-playwright-walkthrough";
 
 const DEFAULT_REPOS = [
@@ -17,20 +17,6 @@ function getDelayMs(name: string, fallback: number): number {
   const value = getArgValue(name);
   const parsed = value ? Number.parseInt(value, 10) : fallback;
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
-}
-
-function moveRobotMouseSmoothly(targetX: number, targetY: number) {
-  const current = robot.getMousePos();
-  const steps = 30;
-  for (let i = 1; i <= steps; i++) {
-    const t = i / steps;
-    // Ease-out
-    const eased = t * (2 - t);
-    const x = Math.round(current.x + (targetX - current.x) * eased);
-    const y = Math.round(current.y + (targetY - current.y) * eased);
-    robot.moveMouse(x, y);
-    // Use a small blocking delay or busy loop equivalent (robot.setMouseDelay handles some)
-  }
 }
 
 async function moveMouseToSelector(page: Page, selector: string): Promise<boolean> {
@@ -64,9 +50,11 @@ async function moveMouseToSelector(page: Page, selector: string): Promise<boolea
   const screenX = Math.round(windowPos.x + x);
   const screenY = Math.round(windowPos.y + chromeUiHeight + y);
 
-  // Move both Playwright's virtual mouse (for hover states) and the REAL OS mouse (for capture)
+  // Move both Playwright's virtual mouse (for hover states)
   await page.mouse.move(x, y, { steps: 32 });
-  moveRobotMouseSmoothly(screenX, screenY);
+  
+  // Move the REAL OS mouse (for Cursorful/Recordly capture)
+  await mouse.move(straightTo(new Point(screenX, screenY)));
   
   await page.waitForTimeout(500);
   return true;
@@ -86,23 +74,27 @@ async function runRepoPass(page: Page, repoUrl: string, expectedTitleFragment: s
     await page.locator(selector).first().scrollIntoViewIfNeeded().catch(() => undefined);
     await page.waitForTimeout(350);
     const didMove = await moveMouseToSelector(page, selector);
-    if (didMove && selector.includes("a") || selector.includes("button")) {
+    if (didMove && (selector.includes("a") || selector.includes("button"))) {
       // Actually click it with the real mouse
-      robot.mouseClick();
+      await mouse.click(Button.LEFT);
       await page.waitForTimeout(1000);
     }
   }
 
   for (const delta of scrollSequence) {
-    // We can use robotjs for scrolling too:
-    robot.scrollMouse(0, delta > 0 ? -3 : 3); // RobotJS scroll is lines/ticks, Playwright is pixels
+    // We can use native OS scrolling: mouse.scrollDown/scrollUp
+    if (delta > 0) {
+      await mouse.scrollDown(5);
+    } else {
+      await mouse.scrollUp(5);
+    }
     await page.mouse.wheel(0, delta);
     await page.waitForTimeout(delta > 0 ? 900 : 700);
   }
 }
 
 async function main() {
-  robot.setMouseDelay(4);
+  mouse.config.mouseSpeed = 600; // pixels per second
   const repoUrls = DEFAULT_REPOS;
   const preflightMs = getDelayMs("--preflight-ms", 0);
   const startDelayMs = getDelayMs("--start-delay-ms", 4_000);

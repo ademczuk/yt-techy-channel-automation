@@ -160,7 +160,7 @@ This repo is currently under `ademczuk`. To move it to your account:
 1. Go to https://github.com/ademczuk/clawhub-weekly/settings
 2. Scroll to **Danger Zone**
 3. Click **Transfer repository**
-4. Enter the new owner (e.g., `MichaelGerges`)
+4. Enter the new owner for the destination account
 
 Or simply fork it to your own account.
 
@@ -176,4 +176,4 @@ Or simply fork it to your own account.
 
 - Data sourced from [ClawHub.ai](https://clawhub.ai) by [OpenClaw](https://github.com/openclaw)
 - Video pipeline by [@ademczuk](https://github.com/ademczuk)
-- Produced for [MichaelGerges](https://github.com/MichaelGerges)
+- Produced for the channel owner

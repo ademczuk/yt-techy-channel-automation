@@ -58,6 +58,21 @@ test("daily tool scripts are conversational and do not use the old generic outro
   assert.match(script, /browser-use/i);
   assert.doesNotMatch(script, /keep an eye on this one/i);
   assert.doesNotMatch(script, /tracking developer tools and automation workflows/i);
+  assert.doesNotMatch(script, /first up is|next on the list is/i);
+});
+
+test("daily tool scripts can open with the repo name directly", () => {
+  const candidate: CandidateTool = {
+    slug: "bytedance/deer-flow",
+    name: "deer-flow",
+    source: "github-trending",
+    url: "https://github.com/bytedance/deer-flow",
+    description: "An open-source SuperAgent harness that researches, codes, and creates.",
+    collectedAt: "2026-03-24T00:00:00.000Z",
+  };
+
+  const script = buildDailyToolScript(candidate, 1);
+  assert.match(script, /^deer-flow\b/i);
 });
 
 test("flags fully non-english items as not daily-ready", () => {

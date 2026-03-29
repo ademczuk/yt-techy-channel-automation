@@ -17,8 +17,8 @@ export function buildProcessInvocation(command: string[]): ProcessInvocation {
     (file === "npx" || file === "npm" || file === "pnpm" || file === "yarn")
   ) {
     return {
-      file: "cmd.exe",
-      args: ["/d", "/s", "/c", [file, ...args].map(quoteWindowsArg).join(" ")],
+      file: process.env.ComSpec ?? "cmd.exe",
+      args: ["/d", "/c", [file, ...args].map(quoteWindowsArg).join(" ")],
     };
   }
 
@@ -31,4 +31,11 @@ function quoteWindowsArg(value: string): string {
   }
 
   return `"${value.replace(/"/g, '\\"')}"`;
+}
+
+export function runCommand(file: string, args: string[] = []): void {
+  const invocation = buildProcessInvocation([file, ...args]);
+  execFileSync(invocation.file, invocation.args, {
+    stdio: "inherit",
+  });
 }

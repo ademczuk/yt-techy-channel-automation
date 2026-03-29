@@ -54,6 +54,7 @@ export const SkillScene: React.FC<SkillSceneProps> = ({
       {/* Fullscreen browsing card — edge to edge */}
       <AbsoluteFill>
         <SkillCard
+          clipPath={skill.clipPath}
           screenshotPath={skill.screenshotPath}
           screenshotHeight={skill.screenshotHeight}
         />

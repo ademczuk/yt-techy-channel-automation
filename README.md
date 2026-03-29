@@ -173,7 +173,7 @@ npm install
 
 - Data sourced from [ClawHub.ai](https://clawhub.ai) by [OpenClaw](https://github.com/openclaw)
 - Video pipeline by [@ademczuk](https://github.com/ademczuk)
-- Produced for [MichaelGerges](https://github.com/MichaelGerges)
+- Produced for the channel owner
 
 ## License
 

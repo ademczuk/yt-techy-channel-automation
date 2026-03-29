@@ -114,3 +114,19 @@ Copy them into:
 - screenshot generation supports partial reruns
 - audio generation supports partial reruns
 - these behaviors are intended to map cleanly to future dashboard buttons
+## Safe PowerShell Launchers
+
+If PowerShell is launched from the wrong folder, commands like `npm exec tsx ...` can trigger an unexpected npm install prompt. For this project, prefer the local launcher script instead of ad hoc `npm exec`.
+
+Use:
+
+```powershell
+Set-Location "C:\YT\Code Search\clawhub-weekly-master"
+.\run-recordly-manual-debug.ps1
+```
+
+Why this is safer:
+
+- it uses the repo's already-installed `node_modules\.bin\tsx.ps1`
+- it does not fetch `tsx` from the public npm registry on the fly
+- it avoids the unquoted `Set-Location C:\YT\Code Search\...` path bug

@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Img,
+  OffthreadVideo,
   staticFile,
   useCurrentFrame,
   useVideoConfig,
@@ -9,6 +10,7 @@ import {
 } from "remotion";
 
 interface SkillCardProps {
+  clipPath?: string;
   screenshotPath?: string;
   screenshotHeight?: number;
 }
@@ -57,6 +59,7 @@ function easeOutQuart(t: number): number {
  * The goal is to feel intentional, not "AI-random".
  */
 export const SkillCard: React.FC<SkillCardProps> = ({
+  clipPath,
   screenshotPath,
   screenshotHeight,
 }) => {
@@ -147,7 +150,17 @@ export const SkillCard: React.FC<SkillCardProps> = ({
         background: "#0d1117",
       }}
     >
-      {screenshotPath ? (
+      {clipPath ? (
+        <OffthreadVideo
+          src={staticFile(clipPath)}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            background: "#0d1117",
+          }}
+        />
+      ) : screenshotPath ? (
         <div
           style={{
             width: "100%",
@@ -196,7 +209,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({
       )}
 
       {/* Deterministic cursor overlay */}
-      {screenshotPath && (
+      {!clipPath && screenshotPath && (
         <div
           style={{
             position: "absolute",

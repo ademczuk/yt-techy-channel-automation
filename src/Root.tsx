@@ -2,6 +2,8 @@ import React from "react";
 import { Composition } from "remotion";
 import type { CalculateMetadataFunction } from "remotion";
 import { SkillsWeekly } from "./compositions/SkillsWeekly";
+import { ScreenDemoComposition } from "./compositions/ScreenDemoComposition";
+import { calculateScreenDemoDurationInFrames } from "./lib/screen-demo-remotion";
 import { DEFAULT_EPISODE_DATA } from "./lib/default-episode";
 import {
   SkillsWeeklyPropsSchema,
@@ -60,17 +62,57 @@ const calculateSkillsWeeklyMetadata: CalculateMetadataFunction<
 };
 
 export const RemotionRoot: React.FC = () => {
+  const calculateScreenDemoMetadata: CalculateMetadataFunction<{
+    clips: Array<{ startMs: number; endMs: number; labels: string[] }>;
+    fps: number;
+    playbackRate: number;
+  }> = async ({ props }) => {
+    return {
+      durationInFrames: calculateScreenDemoDurationInFrames(
+        props.clips ?? [],
+        props.fps ?? 60,
+        props.playbackRate ?? 4,
+      ),
+      fps: props.fps ?? 60,
+      width: 1920,
+      height: 1080,
+    };
+  };
+
   return (
-    <Composition
-      id="SkillsWeekly"
-      component={SkillsWeekly}
-      durationInFrames={900}
-      fps={30}
-      width={1920}
-      height={1080}
-      schema={SkillsWeeklyPropsSchema}
-      calculateMetadata={calculateSkillsWeeklyMetadata}
-      defaultProps={DEFAULT_EPISODE_DATA}
-    />
+    <>
+      <Composition
+        id="SkillsWeekly"
+        component={SkillsWeekly}
+        durationInFrames={900}
+        fps={30}
+        width={1920}
+        height={1080}
+        schema={SkillsWeeklyPropsSchema}
+        calculateMetadata={calculateSkillsWeeklyMetadata}
+        defaultProps={DEFAULT_EPISODE_DATA}
+      />
+      <Composition
+        id="ScreenDemo"
+        component={ScreenDemoComposition}
+        durationInFrames={600}
+        fps={60}
+        width={1920}
+        height={1080}
+        calculateMetadata={calculateScreenDemoMetadata}
+        defaultProps={{
+          recordingSrc: "runtime/placeholder.mp4",
+          clips: [],
+          camera: [],
+          fps: 60,
+          backgroundMode: "dark",
+          playbackRate: 4,
+          viewport: {
+            width: 1920,
+            height: 1080,
+          },
+        }}
+      />
+    </>
   );
 };

@@ -1,17 +1,17 @@
 import type { CandidateTool } from "./candidate-types";
 
 const CONVERSATIONAL_OPENERS = [
-  (name: string) => `First up is ${name}.`,
-  (name: string) => `${name} is getting a lot of attention right now.`,
-  (name: string) => `A tool worth talking about today is ${name}.`,
-  (name: string) => `One of the more interesting projects in today's batch is ${name}.`,
-  (name: string) => `Next on the list is ${name}.`,
+  (name: string) => `${name} is one of the projects moving today.`,
+  (name: string) => `${name} is built for a pretty specific workflow.`,
+  (name: string) => `${name} looks geared toward developers who want something more hands-on.`,
+  (name: string) => `${name} leans into a more technical use case than the name first suggests.`,
+  (name: string) => `${name} is the kind of repo that makes more sense once you see the page.`,
 ];
 
 const OPTIONAL_CLOSERS = [
-  "This feels especially relevant if you're building with agents right now.",
-  "There is probably more depth here than the headline suggests.",
-  "This one makes more sense once you see the workflow in action.",
+  "The practical use case is easier to spot once you get into the README.",
+  "The interesting part here is how quickly you can picture where this fits.",
+  "This reads a lot better as a workflow tool than a hype project.",
 ];
 
 export function selectDailySummary(candidate: CandidateTool): string {
@@ -63,7 +63,7 @@ export function buildDailyToolScript(
 }
 
 export function buildMoversHeaderScript(): string {
-  return "First up, the tools getting the most traction right now.";
+  return "Here are the developer tools getting the most traction right now.";
 }
 
 export function isDailyEnglishReady(candidate: CandidateTool): boolean {

@@ -6,10 +6,9 @@ test("builds direct executable invocations without shell wrapping", () => {
   const invocation = buildProcessInvocation(["npx", "tsx", "scripts/build-episode.ts"]);
 
   if (process.platform === "win32") {
-    assert.equal(invocation.file, "cmd.exe");
+    assert.match(invocation.file, /cmd\.exe$/i);
     assert.deepEqual(invocation.args, [
       "/d",
-      "/s",
       "/c",
       "npx tsx scripts/build-episode.ts",
     ]);

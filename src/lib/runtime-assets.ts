@@ -19,6 +19,7 @@ export function collectRuntimeAssetPaths(manifest: SkillsWeeklyProps): string[] 
   maybeAdd(manifest.backgroundMusicPath);
 
   for (const skill of [...manifest.movers, ...manifest.rockets]) {
+    maybeAdd(skill.clipPath);
     maybeAdd(skill.screenshotPath);
     maybeAdd(skill.audioPath);
   }

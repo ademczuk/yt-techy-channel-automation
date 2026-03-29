@@ -31,8 +31,10 @@ async function main() {
   const opts = parseArgs();
   const date = getLocalDateStamp();
   const rootDir = process.cwd();
-  const episodeDir = getEpisodeDir(rootDir, date);
-  const manifestPath = path.join(episodeDir, "manifest.json");
+  const manifestPath = opts.manifest
+    ? path.resolve(rootDir, opts.manifest)
+    : path.join(getEpisodeDir(rootDir, date), "manifest.json");
+  const episodeDir = path.dirname(manifestPath);
   const audioDir = path.join(episodeDir, "audio");
 
   if (!fs.existsSync(manifestPath)) {
@@ -179,9 +181,15 @@ function parseArgs(): {
   limit?: number;
   startAt?: number;
   overwrite?: boolean;
+  manifest?: string;
 } {
   const args = process.argv.slice(2);
-  const result: { limit?: number; startAt?: number; overwrite?: boolean } = {};
+  const result: {
+    limit?: number;
+    startAt?: number;
+    overwrite?: boolean;
+    manifest?: string;
+  } = {};
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limit" && args[i + 1]) {
@@ -189,6 +197,9 @@ function parseArgs(): {
       i++;
     } else if (args[i] === "--start-at" && args[i + 1]) {
       result.startAt = parseInt(args[i + 1], 10);
+      i++;
+    } else if (args[i] === "--manifest" && args[i + 1]) {
+      result.manifest = args[i + 1];
       i++;
     } else if (args[i] === "--overwrite") {
       result.overwrite = true;

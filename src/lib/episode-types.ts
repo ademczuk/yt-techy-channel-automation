@@ -38,6 +38,16 @@ export const SkillHistorySchema = z.object({
 });
 export type SkillHistory = z.infer<typeof SkillHistorySchema>;
 
+export const FocusCueSchema = z.object({
+  label: z.string(),
+  selector: z.string().optional(),
+  timestampMs: z.number(),
+  normalizedX: z.number(),
+  normalizedY: z.number(),
+  note: z.string().optional(),
+});
+export type FocusCue = z.infer<typeof FocusCueSchema>;
+
 // ── Skill data from SkillMetricScraper ───────────────────────────────
 
 export const SkillDataSchema = z.object({
@@ -71,12 +81,15 @@ export const SkillDataSchema = z.object({
   history: z.array(SkillHistorySchema).optional(),
 
   // Pre-render asset paths (relative to public/)
+  clipPath: z.string().optional(),
   screenshotPath: z.string().optional(),
   /** Height of full-page screenshot in pixels (for scroll animation) */
   screenshotHeight: z.number().optional(),
   audioPath: z.string().optional(),
   /** Measured audio duration in milliseconds */
   audioDurationMs: z.number().optional(),
+  /** Optional cue points for smarter cursor motion / zoom focus */
+  focusCues: z.array(FocusCueSchema).optional(),
 });
 export type SkillData = z.infer<typeof SkillDataSchema>;
 

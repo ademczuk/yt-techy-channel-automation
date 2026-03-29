@@ -188,6 +188,32 @@ This project should use a hybrid approach.
 
 This keeps daily production fast while leaving room for more authentic showcase videos.
 
+### Recordly's Role In The Hybrid Model
+
+Recordly should be treated as:
+
+- selected-window capture
+- cursor telemetry collection
+- editable zoom/background project state
+- export engine
+
+It should not be treated as the browser driver.
+
+Browser or app automation still needs a separate driver such as Playwright so the system can:
+
+- open repos
+- scroll intentionally
+- click relevant links
+- switch tabs in the same browser window
+- play embedded repo videos
+
+The clean architecture is:
+
+- automation driver performs the walkthrough
+- Recordly captures and stores telemetry
+- Recordly project state or project automation applies post-edit zoom/cursor/export decisions
+- Remotion assembles the full episode
+
 ## Editorial Fit Model
 
 Selection should not be based on whether a tool is open source or paid. The real question is whether the channel can make a credible software-builder case for why the audience should care.

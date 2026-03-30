@@ -8,6 +8,14 @@ const CONVERSATIONAL_OPENERS = [
   (name: string) => `${name} is the kind of repo that makes more sense once you see the page.`,
 ];
 
+const CLAWHUB_OPENERS = [
+  (name: string) => `${name} is an OpenClaw skill that caught attention this week.`,
+  (name: string) => `${name} is making moves on ClawHub right now.`,
+  (name: string) => `Developers are installing ${name} for a reason.`,
+  (name: string) => `${name} is one of the skills worth adding to your agent this week.`,
+  (name: string) => `${name} keeps showing up in agent setups right now.`,
+];
+
 const OPTIONAL_CLOSERS = [
   "The practical use case is easier to spot once you get into the README.",
   "The interesting part here is how quickly you can picture where this fits.",
@@ -46,7 +54,9 @@ export function buildDailyToolScript(
   candidate: CandidateTool,
   rank: number,
 ): string {
-  const opener = CONVERSATIONAL_OPENERS[indexFromSeed(candidate.slug, CONVERSATIONAL_OPENERS.length)](
+  const openers =
+    candidate.source === "clawhub" ? CLAWHUB_OPENERS : CONVERSATIONAL_OPENERS;
+  const opener = openers[indexFromSeed(candidate.slug, openers.length)](
     candidate.name,
   );
   const summary = selectDailySummary(candidate);

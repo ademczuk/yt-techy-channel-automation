@@ -50,6 +50,14 @@ async function main() {
     "utf8",
   );
 
+  // Create/update the 'latest' junction so render.ts and other tools can use
+  // a stable path regardless of today's date.
+  const latestDir = path.join(process.cwd(), "runtime", "episodes", "latest");
+  if (fs.existsSync(latestDir)) {
+    fs.rmSync(latestDir, { recursive: true, force: true });
+  }
+  fs.symlinkSync(episodeDir, latestDir, "junction");
+
   console.log(`Selected ${ranked.length} tools`);
   console.log(`Output: ${path.join(episodeDir, "manifest.json")}`);
 }

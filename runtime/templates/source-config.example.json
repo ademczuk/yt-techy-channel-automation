@@ -3,5 +3,9 @@
     "enabled": true,
     "since": "daily",
     "language": ""
+  },
+  "clawhub": {
+    "enabled": true,
+    "limit": 30
   }
 }

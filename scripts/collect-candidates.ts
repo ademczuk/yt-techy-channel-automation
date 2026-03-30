@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { parseGitHubTrending } from "../src/lib/github-trending";
+import { fetchClawHubSkills } from "../src/lib/clawhub-source";
 
 interface SourceConfig {
   githubTrending: {
@@ -8,12 +9,20 @@ interface SourceConfig {
     since?: "daily" | "weekly" | "monthly";
     language?: string;
   };
+  clawhub: {
+    enabled: boolean;
+    limit?: number;
+  };
 }
 
 const DEFAULT_CONFIG: SourceConfig = {
   githubTrending: {
     enabled: true,
     since: "daily",
+  },
+  clawhub: {
+    enabled: true,
+    limit: 30,
   },
 };
 
@@ -48,6 +57,12 @@ async function main() {
 
     const html = await response.text();
     candidates.push(...parseGitHubTrending(html, collectedAt));
+  }
+
+  if (config.clawhub.enabled) {
+    const clawHubLimit = config.clawhub.limit ?? 30;
+    const clawHubCandidates = await fetchClawHubSkills(clawHubLimit, collectedAt);
+    candidates.push(...clawHubCandidates);
   }
 
   const outputPath = path.join(episodeDir, "candidates.raw.json");

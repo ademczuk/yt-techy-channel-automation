@@ -46,6 +46,11 @@ export function rankCandidates(
         score += 5;
       }
 
+      if (candidate.source === "clawhub") {
+        score += 15;
+        reasons.push("clawhub skill — primary showcase source");
+      }
+
       return {
         ...candidate,
         score,

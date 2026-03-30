@@ -28,6 +28,11 @@ const CORE_PATTERNS = [
   /workflow/,
   /\bapi\b/,
   /\bsdk\b/,
+  /clawhub/,
+  /openclaw/,
+  /\bskill\b/,
+  /agent skill/,
+  /agentskill/,
 ];
 
 const ADJACENT_PATTERNS = [

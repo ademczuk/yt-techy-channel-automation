@@ -25,6 +25,13 @@ async function main() {
     }
     runStep("Generate audio", audioArgs);
   }
+
+  if (!args.includes("--skip-render")) {
+    const date = new Date().toISOString().slice(0, 10);
+    const manifestPath = `runtime/episodes/${date}/manifest.json`;
+    const renderArgs = ["npx", "tsx", "render.ts", "--manifest", manifestPath];
+    runStep("Render video", renderArgs);
+  }
 }
 
 function runStep(label: string, command: string[]) {

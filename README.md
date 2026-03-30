@@ -9,7 +9,9 @@ Automated YouTube video pipeline for **OpenClaw Skills Weekly** — a data-drive
 
 ## What This Is
 
-This repo renders a complete 5:42 YouTube video from hardcoded ClawHub skill data. Episode 2 features 15 trending skills (10 movers + 5 rockets) with female AI narration, animated screenshot scrolling, an ecosystem stats dashboard, and ambient background music. Everything is self-contained — no API keys, no external services, no data fetching. Clone, install, render, upload.
+An automated YouTube video pipeline for weekly **OpenClaw Skills Weekly** episodes. It collects trending skills from both **ClawHub.ai** and **GitHub Trending**, ranks and enriches them, generates TTS narration via ElevenLabs, captures full-page screenshots, and renders the final video with Remotion.
+
+A static Episode 2 fixture (15 pre-baked ClawHub skills) ships with the repo for quick renders without running the collection pipeline.
 
 ## Requirements
 
@@ -62,6 +64,51 @@ Each skill scene includes:
 - Female AI narration (OpenAI Nova voice, pre-rendered)
 - Persistent bottom bar: author, downloads, stars, weekly deltas
 - Ambient background music at 12% volume
+
+## Live Pipeline
+
+Run the full collection-to-video pipeline:
+
+```bash
+npx tsx scripts/run-daily.ts
+```
+
+Or with skip flags:
+
+```bash
+npx tsx scripts/run-daily.ts --skip-screenshots --skip-audio  # manifest only
+npx tsx scripts/run-daily.ts --skip-render                    # no video render
+```
+
+### Pipeline Steps
+
+| Step | Script | Description |
+|------|--------|-------------|
+| Collect | `scripts/collect-candidates.ts` | Fetches ClawHub skills + GitHub Trending |
+| Build | `scripts/build-episode.ts` | Ranks, enriches, writes manifest + `latest` junction |
+| Screenshots | `scripts/capture-screenshots.ts` | Full-page captures via Playwright |
+| Audio | `scripts/generate-audio.ts` | ElevenLabs TTS narration |
+| Render | `render.ts` | Remotion H.264 video |
+
+### ClawHub Source
+
+`src/lib/clawhub-source.ts` uses a 3-tier fallback to collect skills:
+1. Scrape `clawhub.ai/skills` directly
+2. Run `npx clawhub@latest search '*' --json` via CLI
+3. Return static seed list from Episode 2 fixture
+
+ClawHub skills get a **+15 score bonus** in ranking so they surface above generic GitHub repos in mixed collections.
+
+### Source Config
+
+Copy `runtime/templates/source-config.example.json` to `runtime/source-config.json` to override defaults:
+
+```json
+{
+  "githubTrending": { "enabled": true, "since": "daily", "language": "" },
+  "clawhub": { "enabled": true, "limit": 30 }
+}
+```
 
 ## Architecture
 

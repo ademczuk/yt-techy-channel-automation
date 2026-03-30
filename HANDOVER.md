@@ -4,7 +4,9 @@
 
 ## What This Is
 
-A self-contained Remotion video pipeline that renders Episode 2 of **OpenClaw Skills Weekly** — a 5:42 YouTube video showcasing 15 trending ClawHub skills (10 movers + 5 rockets). Female AI narration from the first second, ambient background music, full-page screenshot scroll animations with cursor movement, ecosystem pulse dashboard, and persistent stat bars.
+A data-driven YouTube automation pipeline that produces weekly **OpenClaw Skills Weekly** videos showcasing trending skills on [ClawHub.ai](https://clawhub.ai). The pipeline collects candidates from **both ClawHub and GitHub Trending**, ranks and enriches them, generates TTS narration, captures screenshots, and renders the final video via Remotion.
+
+The static Episode 2 fixture (15 pre-baked skills) is still available for quick renders. The live pipeline generates fresh content daily.
 
 ## Prerequisites
 
@@ -164,13 +166,54 @@ This repo is currently under `ademczuk`. To move it to your account:
 
 Or simply fork it to your own account.
 
+## Collection Pipeline (ClawHub + GitHub Trending)
+
+The pipeline runs via `npx tsx scripts/run-daily.ts` and produces a fresh video daily.
+
+### Steps
+
+1. **Collect candidates** (`scripts/collect-candidates.ts`)
+   - Scrapes ClawHub skills (`src/lib/clawhub-source.ts`) — 3-tier fallback: site → CLI → static seed
+   - Scrapes GitHub Trending
+   - Merges into `runtime/episodes/<date>/candidates.raw.json`
+
+2. **Build episode** (`scripts/build-episode.ts`)
+   - Ranks candidates (ClawHub skills get +15 score bonus)
+   - Enriches top candidates with README summaries
+   - Writes `manifest.json` and creates `runtime/episodes/latest` junction
+
+3. **Capture screenshots** (`scripts/capture-screenshots.ts`)
+
+4. **Generate audio** (`scripts/generate-audio.ts`) — ElevenLabs TTS
+
+5. **Render video** (`render.ts`) — Remotion H.264 output
+
+### Skip flags
+
+```bash
+npx tsx scripts/run-daily.ts --skip-screenshots --skip-audio  # manifest only
+npx tsx scripts/run-daily.ts --skip-render                    # no video render
+```
+
+### Source config
+
+Copy `runtime/templates/source-config.example.json` to `runtime/source-config.json` to override defaults:
+
+```json
+{
+  "githubTrending": { "enabled": true, "since": "daily", "language": "" },
+  "clawhub": { "enabled": true, "limit": 30 }
+}
+```
+
 ## Tech Stack
 
 - **[Remotion](https://www.remotion.dev/)** 4.x — React-based video composition framework
 - **React 18** — UI components for each scene
 - **Zod 4.3.6** — Runtime schema validation for episode data
 - **tsx** — TypeScript execution for the render script
-- **OpenAI TTS** (Nova voice) — Used to generate the pre-baked audio files (not needed at render time)
+- **ElevenLabs TTS** — Generates narration audio for each skill
+- **Playwright** — Headless browser for full-page screenshots
 
 ## Credits
 

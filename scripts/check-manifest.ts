@@ -1,0 +1,10 @@
+import fs from "fs";
+const m = JSON.parse(fs.readFileSync("runtime/episodes/2026-03-30/manifest.json", "utf8"));
+console.log("Episode:", m.episodeNumber, m.weekLabel);
+console.log("Movers:", m.movers.map((s: any) => s.displayName));
+console.log("Rockets:", m.rockets.map((s: any) => s.displayName));
+console.log("Has intro audio?", !!m.introAudioPath);
+console.log("Has screenshots?", m.movers.every((s: any) => !!s.screenshotPath));
+console.log("Has skill audio?", m.movers.every((s: any) => !!s.audioPath));
+console.log("Screenshot paths:", m.movers.map((s: any) => s.screenshotPath));
+console.log("Audio paths:", m.movers.map((s: any) => s.audioPath));

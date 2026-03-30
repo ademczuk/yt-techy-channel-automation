@@ -137,7 +137,7 @@ test("deriveCameraKeyframes builds zoom targets from bounds", () => {
   assert.ok(keyframes[0].scale > 1);
 });
 
-test("buildEditConfig returns a 60fps 4x playback configuration", () => {
+test("buildEditConfig returns a 30fps 4x playback configuration", () => {
   const config = buildEditConfig(
     [
       { timeMs: 500, action: "click", label: "hero" },
@@ -147,7 +147,7 @@ test("buildEditConfig returns a 60fps 4x playback configuration", () => {
     "light",
   );
 
-  assert.equal(config.fps, 60);
+  assert.equal(config.fps, 30);
   assert.equal(config.playbackRate, 4);
   assert.equal(config.backgroundMode, "light");
 });

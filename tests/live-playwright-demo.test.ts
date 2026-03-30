@@ -24,7 +24,7 @@ test("buildTrimmedLivePlaywrightEditConfig normalizes moments and keeps natural 
 
   assert.equal(normalizedMoments.length, 3);
   assert.equal(editConfig.playbackRate, 1);
-  assert.equal(editConfig.fps, 60);
+  assert.equal(editConfig.fps, 30);
   assert.deepEqual(editConfig.camera, []);
   assert.equal(editConfig.clips.length, 2);
   assert.equal(editConfig.clips[0]?.startMs, 500);

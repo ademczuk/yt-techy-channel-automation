@@ -84,7 +84,7 @@ test("runScreenDemoPipeline records and renders a trimmed demo output", async ()
 
   const editConfig = JSON.parse(fs.readFileSync(project.editConfigPath, "utf8"));
   assert.equal(editConfig.playbackRate, 4);
-  assert.equal(editConfig.fps, 60);
+  assert.equal(editConfig.fps, 30);
   assert.equal(editConfig.clips.length, 1);
 
   const copiedRecordingPath = path.join(rootDir, "public", "screen-demos", path.basename(projectDir), "recording.mp4");

@@ -197,7 +197,7 @@ export function buildEditConfig(
 ): EditConfig {
   return EditConfigSchema.parse({
     playbackRate: 4,
-    fps: 60,
+    fps: 30,
     clips: deriveClipSegments(moments, recordingDurationMs),
     camera: deriveCameraKeyframes(moments),
     backgroundMode,

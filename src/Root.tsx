@@ -74,14 +74,14 @@ export const RemotionRoot: React.FC = () => {
     }, 0);
     const visualDurationFrames = calculateScreenDemoDurationInFrames(
       props.clips ?? [],
-      props.fps ?? 60,
+      props.fps ?? 30,
       props.playbackRate ?? 4,
       props.visualOffsetMs ?? 0,
     );
-    const audioDurationFrames = Math.ceil((audioEndMs / 1000) * (props.fps ?? 60));
+    const audioDurationFrames = Math.ceil((audioEndMs / 1000) * (props.fps ?? 30));
     return {
-      durationInFrames: Math.max(visualDurationFrames, audioDurationFrames, props.fps ?? 60),
-      fps: props.fps ?? 60,
+      durationInFrames: Math.max(visualDurationFrames, audioDurationFrames, props.fps ?? 30),
+      fps: props.fps ?? 30,
       width: 1920,
       height: 1080,
     };
@@ -104,7 +104,7 @@ export const RemotionRoot: React.FC = () => {
         id="ScreenDemo"
         component={ScreenDemoComposition}
         durationInFrames={600}
-        fps={60}
+        fps={30}
         width={1920}
         height={1080}
         calculateMetadata={calculateScreenDemoMetadata}
@@ -114,7 +114,7 @@ export const RemotionRoot: React.FC = () => {
           camera: [],
           audioTracks: [],
           visualOffsetMs: 0,
-          fps: 60,
+          fps: 30,
           backgroundMode: "dark",
           playbackRate: 4,
           viewport: {

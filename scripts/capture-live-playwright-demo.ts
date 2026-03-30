@@ -323,7 +323,7 @@ async function executeBeat(
       action: "click",
       label: beat.label,
       selector: clickable.selector,
-      url: await safePageUrl(page, repoUrl),
+      url: repoUrl,
       bounds: clickable.box,
     });
     return;

@@ -122,7 +122,7 @@ export function buildTrimmedLivePlaywrightEditConfig(
   const normalizedMoments = normalizeMomentsToRecordingDuration(moments, recordingDurationMs);
   const editConfig = EditConfigSchema.parse({
     playbackRate: 1,
-    fps: 60,
+    fps: 30,
     clips: deriveClipSegments(normalizedMoments, recordingDurationMs),
     camera: [],
     backgroundMode,

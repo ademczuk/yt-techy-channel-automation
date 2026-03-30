@@ -43,6 +43,7 @@ export function buildCaptureUrl(url: string): string {
     parsed.hash = "readme";
   }
 
+  // ClawHub skill pages are already good capture targets — no hash needed
   return parsed.toString();
 }
 
@@ -79,14 +80,27 @@ export function getScreenshotFailureReason(
 export function buildReadmeFocusScript(): string {
   return `
 (() => {
-  const selectors = [
+  // GitHub readme selectors
+  const githubSelectors = [
     '#readme',
     '[data-testid="readme"]',
     'article.markdown-body',
     '.markdown-body'
   ];
 
-  const target = selectors
+  // ClawHub skill page selectors
+  const clawhubSelectors = [
+    '.skill-detail',
+    '.skill-content',
+    '.skill-description',
+    '[data-skill-readme]',
+    'main .prose',
+    'main article'
+  ];
+
+  const allSelectors = [...githubSelectors, ...clawhubSelectors];
+
+  const target = allSelectors
     .map((selector) => document.querySelector(selector))
     .find(Boolean);
 

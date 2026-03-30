@@ -1,12 +1,17 @@
 import { chromium } from "playwright";
 import { runGitHubWalkthrough } from "./lib/github-walkthrough";
+import { runClawHubWalkthrough } from "./lib/clawhub-walkthrough";
 import { buildHumanBrowserPlan } from "../src/lib/human-browser-skill";
 
 const DEFAULT_REPOS = [
-  "https://github.com/bytedance/deer-flow",
-  "https://github.com/NousResearch/hermes-agent",
-  "https://github.com/browser-use/browser-use",
+  "https://clawhub.ai/skills/self-improving-agent",
+  "https://clawhub.ai/skills/find-skills",
+  "https://clawhub.ai/skills/polymarketodds",
 ];
+
+function isClawHubUrl(url: string): boolean {
+  return url.includes("clawhub.ai/skills/");
+}
 
 function getArgValue(name: string): string | undefined {
   const match = process.argv.find((entry) => entry.startsWith(`${name}=`));
@@ -43,10 +48,17 @@ async function main() {
   await page.waitForTimeout(startDelayMs);
 
   for (const repoUrl of plan.repoUrls) {
-    await runGitHubWalkthrough(page, {
-      repoUrl,
-      durationMs: plan.perRepoDurationMs,
-    });
+    if (isClawHubUrl(repoUrl)) {
+      await runClawHubWalkthrough(page, {
+        skillUrl: repoUrl,
+        durationMs: plan.perRepoDurationMs,
+      });
+    } else {
+      await runGitHubWalkthrough(page, {
+        repoUrl,
+        durationMs: plan.perRepoDurationMs,
+      });
+    }
     await page.waitForTimeout(plan.betweenReposMs);
   }
 

@@ -66,7 +66,11 @@ export function buildDraftBrowsePlan(prompt: string): BrowsePlan {
   const safeUrls = uniqueUrls.length > 0 ? uniqueUrls : ["https://example.com"];
   const title = toTitleFromPrompt(prompt);
   const narration = buildNarrationBeats(prompt, safeUrls);
-  const steps = narration.flatMap((beat, index) => buildGitHubBrowseSteps(beat, index));
+  const steps = narration.flatMap((beat, index) =>
+    isClawHubUrl(beat.url)
+      ? buildClawHubBrowseSteps(beat, index)
+      : buildGitHubBrowseSteps(beat, index),
+  );
 
   return BrowsePlanSchema.parse({
     version: 1,
@@ -84,6 +88,24 @@ export function buildNarrationBeats(prompt: string, urls: string[]): NarrationBe
     const repoName = humanRepoName(url);
     const repoSlug = rawRepoName(url);
     const circleCount = toDeterministicCircleCount(`${prompt}::${url}`);
+
+    if (isClawHubUrl(url)) {
+      const focusSelectors = [
+        'h1',
+        '.skill-description, .skill-summary, main p:first-of-type',
+        'code, pre, .install-snippet',
+        '.skill-readme, .prose, article',
+      ];
+
+      return {
+        url,
+        line: `${repoSlug} is the skill in focus, so start on the title, walk through the description and install command, then explore the documentation.`,
+        focusLabel: `${repoName} skill overview`,
+        focusSelectors,
+        circleCount,
+      };
+    }
+
     const focusSelectors = [
       '[itemprop="name"] a',
       '[data-testid="repository-description"]',
@@ -295,6 +317,77 @@ function buildGitHubBrowseSteps(beat: NarrationBeat, index: number): BrowseStep[
       label: `${labelPrefix}-scroll-secondary`,
       deltaY: 340,
       durationMs: 1300,
+      smooth: true,
+      targetKind: "readme",
+      scriptLine: beat.line,
+    },
+  ];
+}
+
+function isClawHubUrl(url: string): boolean {
+  return url.includes("clawhub.ai/skills/");
+}
+
+function buildClawHubBrowseSteps(beat: NarrationBeat, index: number): BrowseStep[] {
+  const labelPrefix = `page-${index + 1}`;
+  return [
+    { action: "navigate", label: `${labelPrefix}-open`, url: beat.url, durationMs: 0, scriptLine: beat.line },
+    { action: "wait", label: `${labelPrefix}-settle`, durationMs: 1500, scriptLine: beat.line },
+    {
+      action: "hover",
+      label: `${labelPrefix}-skill-title`,
+      selectorCandidates: ['h1', '.skill-title', '.skill-header h1', 'main h1'],
+      targetKind: "header",
+      circleCount: beat.circleCount,
+      scriptLine: beat.line,
+    },
+    {
+      action: "hover",
+      label: `${labelPrefix}-skill-description`,
+      selectorCandidates: ['.skill-description', '.skill-summary', 'main p:first-of-type', '.prose > p:first-child'],
+      targetKind: "description",
+      circleCount: 1,
+      scriptLine: beat.line,
+    },
+    {
+      action: "hover",
+      label: `${labelPrefix}-install-command`,
+      selectorCandidates: ['code', 'pre', '.install-snippet', '.copy-command'],
+      targetKind: "install",
+      circleCount: 1,
+      scriptLine: beat.line,
+    },
+    {
+      action: "scroll",
+      label: `${labelPrefix}-scroll-to-readme`,
+      deltaY: 480,
+      durationMs: 1400,
+      smooth: true,
+      targetKind: "readme",
+      scriptLine: beat.line,
+    },
+    {
+      action: "hover",
+      label: `${labelPrefix}-skill-readme`,
+      selectorCandidates: ['.skill-readme', '.prose', 'article', '.skill-content', 'main .markdown-body'],
+      targetKind: "readme",
+      circleCount: 1,
+      scriptLine: beat.line,
+    },
+    {
+      action: "hover",
+      label: `${labelPrefix}-stats`,
+      selectorCandidates: ['.skill-stats', '.download-count', '.star-count', '.stats'],
+      targetKind: "stats",
+      circleCount: 1,
+      optional: true,
+      scriptLine: beat.line,
+    },
+    {
+      action: "scroll",
+      label: `${labelPrefix}-scroll-secondary`,
+      deltaY: 320,
+      durationMs: 1200,
       smooth: true,
       targetKind: "readme",
       scriptLine: beat.line,

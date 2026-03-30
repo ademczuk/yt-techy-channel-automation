@@ -21,6 +21,16 @@ const LEDGER_FILENAME = "episodes-ledger.json";
 const DEFAULT_COOLDOWN_WEEKS = 8;
 
 /**
+ * Cross-source alias map: ClawHub slugs that map to known GitHub repos.
+ * When both sources discover the same tool, this ensures canonical merge.
+ * Extend this map as new aliases are confirmed.
+ */
+const CROSS_SOURCE_ALIASES = new Map<string, string>([
+  // Format: clawhub slug → gh:owner/repo canonical id
+  // Populated as we discover ClawHub skills with known GitHub origins
+]);
+
+/**
  * Derive a stable canonical ID for a skill.
  *
  * - clawhub source → "clawhub:<slug>"
@@ -34,6 +44,10 @@ export function canonicalSkillId(skill: {
   source?: string;
 }): string {
   if (skill.source === "clawhub" && skill.slug) {
+    // Check cross-source alias first — if this ClawHub skill is known to be
+    // the same as a GitHub repo, use the GitHub canonical ID for merge.
+    const alias = CROSS_SOURCE_ALIASES.get(skill.slug);
+    if (alias) return alias;
     return `clawhub:${skill.slug}`;
   }
 
@@ -53,6 +67,17 @@ export function canonicalSkillId(skill: {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
   return `name:${normalized}`;
+}
+
+/**
+ * Register a cross-source alias at runtime. Used when README enrichment
+ * discovers that a ClawHub skill maps to a specific GitHub repo.
+ */
+export function registerCrossSourceAlias(
+  clawhubSlug: string,
+  githubCanonicalId: string,
+): void {
+  CROSS_SOURCE_ALIASES.set(clawhubSlug, githubCanonicalId);
 }
 
 export function loadLedger(rootDir: string): EpisodeLedger {

@@ -21,7 +21,7 @@ export const BrowseStepSchema = z.object({
   deltaY: z.number().int().optional(),
   smooth: z.boolean().optional(),
   circleCount: z.number().int().min(1).max(2).optional(),
-  targetKind: z.enum(["header", "description", "readme", "link", "video", "input"]).optional(),
+  targetKind: z.enum(["header", "description", "readme", "link", "video", "input", "install", "stats"]).optional(),
   optional: z.boolean().optional(),
   scriptLine: z.string().optional(),
 });

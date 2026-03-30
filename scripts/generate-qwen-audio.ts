@@ -40,7 +40,12 @@ async function main() {
       }
       
       const buffer = Buffer.from(await response.arrayBuffer());
-      fs.writeFileSync(outputPath, buffer);
+      const tempWav = outputPath.replace(".mp3", ".wav");
+      fs.writeFileSync(tempWav, buffer);
+      
+      // Convert WAV to MP3 using ffmpeg
+      execSync(`ffmpeg -y -i "${tempWav}" -c:a libmp3lame -q:a 2 "${outputPath}"`, { stdio: "pipe" });
+      fs.unlinkSync(tempWav);
     } catch (e: any) {
       console.error(`Error with Qwen TTS for ${path.basename(outputPath)}:`, e.message);
       console.log("Falling back to placeholder audio...");

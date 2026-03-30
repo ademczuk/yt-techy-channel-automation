@@ -10,6 +10,13 @@ import {
 import { rankCandidates } from "../src/lib/ranker";
 import type { SkillsWeeklyProps } from "../src/lib/episode-types";
 import { enrichCandidatesWithReadmes } from "../src/lib/readme-enrichment";
+import {
+  canonicalSkillId,
+  dedupeAndSelect,
+  loadLedger,
+  recordEpisode,
+  saveLedger,
+} from "../src/lib/dedupe";
 
 const DEFAULT_TOOL_LIMIT = 10;
 
@@ -34,9 +41,11 @@ async function main() {
     preRanked,
     path.join(episodeDir, "readmes"),
   );
-  const ranked = rankCandidates(enriched, DEFAULT_TOOL_LIMIT + 5)
-    .filter((candidate) => isDailyEnglishReady(candidate))
-    .slice(0, DEFAULT_TOOL_LIMIT);
+  const ledger = loadLedger(process.cwd());
+  const eligible = rankCandidates(enriched, DEFAULT_TOOL_LIMIT + 5).filter(
+    (candidate) => isDailyEnglishReady(candidate),
+  );
+  const ranked = dedupeAndSelect(eligible, ledger, DEFAULT_TOOL_LIMIT, date);
   const manifest = buildManifest(ranked, date);
 
   fs.writeFileSync(
@@ -49,6 +58,12 @@ async function main() {
     JSON.stringify(manifest, null, 2),
     "utf8",
   );
+
+  for (const [index, candidate] of ranked.entries()) {
+    const skillId = canonicalSkillId(candidate);
+    recordEpisode(ledger, skillId, candidate.slug, candidate.name, index + 1, date);
+  }
+  saveLedger(process.cwd(), ledger);
 
   // Create/update the 'latest' junction so render.ts and other tools can use
   // a stable path regardless of today's date.

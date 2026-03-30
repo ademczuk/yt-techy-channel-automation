@@ -17,3 +17,7 @@ runtime/framechecks/
 screen-demos/
 midscene_run/
 public/screen-demos/
+
+data/titan_memory.db
+memories.db
+server.log

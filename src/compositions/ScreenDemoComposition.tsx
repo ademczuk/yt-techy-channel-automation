@@ -1,6 +1,8 @@
 import React from "react";
 import {
   AbsoluteFill,
+  Audio,
+  Freeze,
   OffthreadVideo,
   Sequence,
   staticFile,
@@ -9,6 +11,8 @@ import {
 import type { CameraKeyframe, DemoClip } from "../lib/screen-demo-types";
 import {
   buildCameraWindows,
+  calculateScreenDemoDurationInFrames,
+  getRecordingVideoStyle,
   buildScreenDemoTimeline,
   resolveCameraTransform,
   type ScreenDemoTimelineClip,
@@ -18,6 +22,13 @@ export interface ScreenDemoCompositionProps {
   recordingSrc: string;
   clips: DemoClip[];
   camera: CameraKeyframe[];
+  audioTracks?: Array<{
+    src: string;
+    startMs: number;
+    durationMs?: number;
+    label: string;
+  }>;
+  visualOffsetMs?: number;
   fps: number;
   backgroundMode: "dark" | "light";
   playbackRate: number;
@@ -31,6 +42,8 @@ export const ScreenDemoComposition: React.FC<ScreenDemoCompositionProps> = ({
   recordingSrc,
   clips,
   camera,
+  audioTracks = [],
+  visualOffsetMs = 0,
   fps,
   backgroundMode,
   playbackRate,
@@ -39,7 +52,20 @@ export const ScreenDemoComposition: React.FC<ScreenDemoCompositionProps> = ({
   const resolvedRecordingSrc = recordingSrc.startsWith("/")
     ? staticFile(recordingSrc.replace(/^\/+/, ""))
     : recordingSrc;
-  const timeline = buildScreenDemoTimeline(clips, fps, playbackRate);
+  const resolvedAudioTracks = audioTracks.map((track) => ({
+    ...track,
+    src: track.src.startsWith("/") ? staticFile(track.src.replace(/^\/+/, "")) : track.src,
+  }));
+  const timeline = buildScreenDemoTimeline(clips, fps, playbackRate, visualOffsetMs);
+  const audioEndFrame = resolvedAudioTracks.reduce((maxFrame, track) => {
+    const startFrame = Math.round((track.startMs / 1000) * fps);
+    const durationFrameGuess = track.durationMs ? Math.round((track.durationMs / 1000) * fps) : 0;
+    return Math.max(maxFrame, startFrame + durationFrameGuess);
+  }, 0);
+  const compositionDurationInFrames = Math.max(
+    calculateScreenDemoDurationInFrames(clips, fps, playbackRate, visualOffsetMs),
+    audioEndFrame || 0,
+  );
 
   return (
     <AbsoluteFill
@@ -68,6 +94,19 @@ export const ScreenDemoComposition: React.FC<ScreenDemoCompositionProps> = ({
             position: "relative",
           }}
         >
+          <Sequence from={0} durationInFrames={compositionDurationInFrames}>
+            <AbsoluteFill>
+              {resolvedAudioTracks.map((track) => (
+                <Sequence
+                  key={`${track.label}-${track.startMs}`}
+                  from={Math.round((track.startMs / 1000) * fps)}
+                  durationInFrames={Math.max(1, Math.round(((track.durationMs ?? 1000) / 1000) * fps))}
+                >
+                  <Audio src={track.src} />
+                </Sequence>
+              ))}
+            </AbsoluteFill>
+          </Sequence>
           {timeline.map((timelineClip) => (
             <ClipSequence
               key={`${timelineClip.clip.startMs}-${timelineClip.clip.endMs}-${timelineClip.clip.labels.join("-")}`}
@@ -93,11 +132,13 @@ const ClipSequence: React.FC<{
   playbackRate: number;
   viewport: { width: number; height: number };
 }> = ({ timelineClip, camera, recordingSrc, fps, playbackRate, viewport }) => {
-  const { fromFrame, durationInFrames, sourceStartFrame, sourceEndFrame } = timelineClip;
+  const { fromFrame, durationInFrames, sourceStartFrame, sourceEndFrame, sourceDurationInFrames } = timelineClip;
   const frame = useCurrentFrame();
   const clipFrame = Math.min(durationInFrames - 1, Math.max(0, frame));
   const cameraWindows = buildCameraWindows(timelineClip, camera, fps, playbackRate);
   const { scale, offsetX, offsetY } = resolveCameraTransform(clipFrame, cameraWindows, viewport);
+  const holdFrames = Math.max(0, durationInFrames - sourceDurationInFrames);
+  const recordingVideoStyle = getRecordingVideoStyle();
 
   return (
     <Sequence from={fromFrame} durationInFrames={durationInFrames}>
@@ -106,14 +147,29 @@ const ClipSequence: React.FC<{
           transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
           transformOrigin: "center center",
         }}
-      >
-        <OffthreadVideo
-          src={recordingSrc}
-          startFrom={sourceStartFrame}
-          endAt={sourceEndFrame}
-          playbackRate={playbackRate}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
+        >
+          <Sequence from={0} durationInFrames={Math.max(1, Math.min(durationInFrames, sourceDurationInFrames))}>
+            <OffthreadVideo
+              src={recordingSrc}
+              startFrom={sourceStartFrame}
+              endAt={sourceEndFrame}
+              playbackRate={playbackRate}
+              style={recordingVideoStyle}
+            />
+          </Sequence>
+          {holdFrames > 0 ? (
+            <Sequence from={sourceDurationInFrames} durationInFrames={holdFrames}>
+              <Freeze frame={Math.max(0, sourceDurationInFrames - 1)}>
+                <OffthreadVideo
+                  src={recordingSrc}
+                  startFrom={sourceStartFrame}
+                  endAt={sourceEndFrame}
+                  playbackRate={playbackRate}
+                  style={recordingVideoStyle}
+                />
+              </Freeze>
+            </Sequence>
+          ) : null}
       </AbsoluteFill>
     </Sequence>
   );

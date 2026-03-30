@@ -39,6 +39,23 @@ test("calculateScreenDemoDurationInFrames sums rebased clip durations", () => {
   assert.equal(duration, 90);
 });
 
+test("buildScreenDemoTimeline honors narration-driven clip duration and visual lead-in", () => {
+  const timeline = buildScreenDemoTimeline(
+    [
+      { startMs: 1000, endMs: 3000, timelineDurationMs: 5000, labels: ["repo"] },
+    ],
+    60,
+    1,
+    1200,
+  );
+
+  assert.equal(timeline.length, 1);
+  assert.equal(timeline[0].fromFrame, 72);
+  assert.equal(timeline[0].sourceStartFrame, 60);
+  assert.equal(timeline[0].sourceDurationInFrames, 120);
+  assert.equal(timeline[0].durationInFrames, 300);
+});
+
 test("buildCameraWindows creates short focus windows instead of a clip-wide zoom", () => {
   const [timelineClip] = buildScreenDemoTimeline(
     [

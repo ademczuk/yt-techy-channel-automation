@@ -14,6 +14,7 @@ Use this project-local skill when Codex should control a visible browser window 
 - injects a visible pointer overlay into the page
 - moves the pointer in a human-looking path
 - scrolls the README areas naturally enough for creator demo footage
+- this skill remains the overlay-cursor lane; if a real OS mouse is required, use the live Playwright recording lane instead
 
 ## Command
 
@@ -27,4 +28,3 @@ npm run capture:live:human -- --start-delay-ms=5000 --per-repo-seconds=12
 - This is a project-local skill, not a global one.
 - The visible cursor is an injected browser overlay, not the real OS cursor.
 - It is meant for direct browser control by Codex when a believable visible mouse is enough for the recording.
-

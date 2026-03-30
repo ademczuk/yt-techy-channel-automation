@@ -17,6 +17,13 @@ The current proven lane is:
 - smoother cursor travel, circles, and segmented scroll
 - Remotion for the final packaged output
 
+The local experimental lane can also:
+
+- drive real OS mouse movement
+- perform real clicks on live browser targets
+- capture a fullscreen browser window on the primary screen
+- trim dead time from recorded action moments before the final render
+
 ## Quick Start
 
 1. Run setup:
@@ -74,6 +81,7 @@ The current code path now renders `demo.mp4` from the main `npm run screen-demo`
 - Use one or two cursor circles on key focus areas
 - Scroll with smaller segmented wheel ticks, not one large jump
 - Preserve the whole visible scroll motion in the trimmed render
+- Do not record a loose desktop crop when the intent is a browser demo; maximize or fullscreen the browser first
 - Use selective camera punch-ins for important beats, then release back to full-frame between focus windows
 - Treat link and video actions as optional unless the prompt makes them mandatory
 - Keep GitHub actions narration-aware by writing `script.txt` from the same narration beats that generate the browse plan

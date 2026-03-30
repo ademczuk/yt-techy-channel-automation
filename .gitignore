@@ -9,6 +9,7 @@ build/
 runtime/episodes/
 runtime/tests/
 runtime/voice-config.json
+runtime/script-agent-config.json
 public/runtime/
 runtime/*.env
 runtime/browser-session/

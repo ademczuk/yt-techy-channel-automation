@@ -1,10 +1,20 @@
 import type { CameraKeyframe, DemoClip } from "./screen-demo-types";
 
+export function getRecordingVideoStyle() {
+  return {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain" as const,
+    backgroundColor: "#05070a",
+  };
+}
+
 export interface ScreenDemoTimelineClip {
   clip: DemoClip;
   fromFrame: number;
   durationInFrames: number;
   sourceStartFrame: number;
+  sourceDurationInFrames: number;
   sourceEndFrame: number;
 }
 
@@ -23,19 +33,22 @@ export function buildScreenDemoTimeline(
   clips: DemoClip[],
   fps: number,
   playbackRate: number,
+  initialOffsetMs = 0,
 ): ScreenDemoTimelineClip[] {
   const safePlaybackRate = Math.max(playbackRate, 0.01);
-  let currentFromFrame = 0;
+  let currentFromFrame = Math.max(0, msToFrames(initialOffsetMs, fps));
 
   return clips.map((clip) => {
     const sourceStartFrame = msToFrames(clip.startMs, fps);
     const sourceDurationFrames = Math.max(1, msToFrames(clip.endMs - clip.startMs, fps));
-    const durationInFrames = Math.max(1, Math.round(sourceDurationFrames / safePlaybackRate));
+    const targetDurationMs = clip.timelineDurationMs ?? (clip.endMs - clip.startMs);
+    const durationInFrames = Math.max(1, Math.round(msToFrames(targetDurationMs, fps) / safePlaybackRate));
     const timelineClip: ScreenDemoTimelineClip = {
       clip,
       fromFrame: currentFromFrame,
       durationInFrames,
       sourceStartFrame,
+      sourceDurationInFrames: sourceDurationFrames,
       sourceEndFrame: sourceStartFrame + sourceDurationFrames,
     };
     currentFromFrame += durationInFrames;
@@ -47,11 +60,12 @@ export function calculateScreenDemoDurationInFrames(
   clips: DemoClip[],
   fps: number,
   playbackRate: number,
+  initialOffsetMs = 0,
 ): number {
-  const timeline = buildScreenDemoTimeline(clips, fps, playbackRate);
+  const timeline = buildScreenDemoTimeline(clips, fps, playbackRate, initialOffsetMs);
   const lastClip = timeline.at(-1);
   if (!lastClip) {
-    return Math.max(1, fps);
+    return Math.max(1, fps + msToFrames(initialOffsetMs, fps));
   }
   return Math.max(1, lastClip.fromFrame + lastClip.durationInFrames);
 }

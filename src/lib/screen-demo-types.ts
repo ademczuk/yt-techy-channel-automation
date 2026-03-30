@@ -67,6 +67,7 @@ export const DemoMomentSchema = z.object({
 export const DemoClipSchema = z.object({
   startMs: z.number().int().nonnegative(),
   endMs: z.number().int().nonnegative(),
+  timelineDurationMs: z.number().int().positive().optional(),
   labels: z.array(z.string()).min(1),
 });
 

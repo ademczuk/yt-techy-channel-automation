@@ -16,6 +16,8 @@ Use this project-local skill to turn the script beats into `browse-plan.json`.
 - Prefer `selectorCandidates` over one brittle selector.
 - Treat external links and videos as optional unless the prompt makes them mandatory.
 - Keep switches between pages or tabs explicit in the plan instead of assuming the browser state will “just follow.”
+- When the lane uses real mouse movement and clicking, plan for those interactions explicitly instead of relying on hover-only coverage.
+- Prefer scroll actions that can be executed as segmented smooth in-page motion rather than abrupt wheel jumps.
 
 ## Current Files
 
@@ -33,4 +35,3 @@ Use this project-local skill to turn the script beats into `browse-plan.json`.
 
 - run `node --import tsx --test tests/screen-demo-harness.test.ts`
 - inspect the run folder’s `browse-plan.json`
-

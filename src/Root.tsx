@@ -63,16 +63,24 @@ const calculateSkillsWeeklyMetadata: CalculateMetadataFunction<
 
 export const RemotionRoot: React.FC = () => {
   const calculateScreenDemoMetadata: CalculateMetadataFunction<{
-    clips: Array<{ startMs: number; endMs: number; labels: string[] }>;
+    clips: Array<{ startMs: number; endMs: number; labels: string[]; timelineDurationMs?: number }>;
+    audioTracks?: Array<{ startMs: number; durationMs?: number }>;
+    visualOffsetMs?: number;
     fps: number;
     playbackRate: number;
   }> = async ({ props }) => {
+    const audioEndMs = (props.audioTracks ?? []).reduce((maxMs, track) => {
+      return Math.max(maxMs, (track.startMs ?? 0) + (track.durationMs ?? 0));
+    }, 0);
+    const visualDurationFrames = calculateScreenDemoDurationInFrames(
+      props.clips ?? [],
+      props.fps ?? 60,
+      props.playbackRate ?? 4,
+      props.visualOffsetMs ?? 0,
+    );
+    const audioDurationFrames = Math.ceil((audioEndMs / 1000) * (props.fps ?? 60));
     return {
-      durationInFrames: calculateScreenDemoDurationInFrames(
-        props.clips ?? [],
-        props.fps ?? 60,
-        props.playbackRate ?? 4,
-      ),
+      durationInFrames: Math.max(visualDurationFrames, audioDurationFrames, props.fps ?? 60),
       fps: props.fps ?? 60,
       width: 1920,
       height: 1080,
@@ -104,6 +112,8 @@ export const RemotionRoot: React.FC = () => {
           recordingSrc: "runtime/placeholder.mp4",
           clips: [],
           camera: [],
+          audioTracks: [],
+          visualOffsetMs: 0,
           fps: 60,
           backgroundMode: "dark",
           playbackRate: 4,

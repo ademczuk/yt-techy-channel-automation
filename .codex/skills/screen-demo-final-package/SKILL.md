@@ -15,6 +15,7 @@ Use this project-local skill for the final packaged render stage.
 - Keep the final package tied to the saved project folder.
 - Preserve the configured `60fps` and `4x` playback in the Remotion render props unless a deliberate edit changes them.
 - Treat the Remotion pass as the place where the trimmed clips and camera moves become the final deliverable.
+- If a local real-mouse capture lane is used, package from the saved action-trim config so dead time between real interactions stays removed in the final demo.
 
 ## Current Files
 
@@ -26,4 +27,3 @@ Use this project-local skill for the final packaged render stage.
 
 - run `npm run screen-demo:render -- --props screen-demos/<project>/render-props.json --output screen-demos/<project>/demo.mp4`
 - verify `demo.mp4` exists and is decodable
-

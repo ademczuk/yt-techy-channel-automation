@@ -17,6 +17,7 @@
     "capture:drive:human-two-repos": "tsx scripts/attach-human-browser-two-repos.ts",
     "capture:live:human": "tsx scripts/live-human-browser-walkthrough.ts",
     "capture:live:playwright": "tsx scripts/live-playwright-recording.ts",
+    "capture:live:playwright:demo": "tsx scripts/capture-live-playwright-demo.ts",
     "capture:test:webreel": "tsx scripts/test-webreel.ts",
     "capture:test:webreel:preview": "tsx scripts/test-webreel.ts --preview-only",
     "build:webreel:proof": "tsx scripts/build-webreel-proof.ts",
@@ -24,7 +25,8 @@
     "capture:test:recordly:export": "tsx scripts/test-recordly.ts --editor-export --limit=1 --duration=15",
     "capture:test:current": "tsx scripts/test-current-project.ts",
     "capture:test:cursorful": "tsx scripts/test-cursorful.ts",
-    "capture:test:cursorful:raw": "tsx scripts/test-cursorful-raw.ts"
+    "capture:test:cursorful:raw": "tsx scripts/test-cursorful-raw.ts",
+    "dashboard:start": "tsx src/dashboard/server.ts"
   },
   "dependencies": {
     "@nut-tree-fork/nut-js": "^4.2.6",

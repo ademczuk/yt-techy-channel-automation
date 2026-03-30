@@ -1,13 +1,21 @@
-export interface LiveRepoStep {
+import type { BrowserWindowMetrics } from "./live-playwright-demo";
+import type { HarnessRecordingPlan, RecordingBeatPlan, RecordingRepoPlan, RecordingTabPlan } from "./harness-recording-plan";
+
+export interface LiveRepoExecution {
   repoUrl: string;
   slug: string;
-  expectedTitleFragment: string;
+  name: string;
   tabIndex: number;
-  hoverSelectors: string[];
-  scrollSequence: number[];
+  expectedTitleFragment: string;
+  segmentDurationMs: number;
+  beats: RecordingBeatPlan[];
 }
 
-const DEFAULT_SCROLL_SEQUENCE = [420, 360, 300, -180];
+export interface LiveExecutionPlan {
+  introLeadInMs: number;
+  tabs: RecordingTabPlan[];
+  repoExecutions: LiveRepoExecution[];
+}
 
 export function slugFromRepoUrl(repoUrl: string): string {
   const url = new URL(repoUrl);
@@ -20,19 +28,44 @@ export function titleFragmentFromRepoUrl(repoUrl: string): string {
   return segments.at(-1) ?? repoUrl;
 }
 
-export function buildLiveRepoSteps(repoUrls: string[]): LiveRepoStep[] {
-  return repoUrls.map((repoUrl, index) => ({
-    repoUrl,
-    slug: slugFromRepoUrl(repoUrl),
-    expectedTitleFragment: titleFragmentFromRepoUrl(repoUrl),
-    tabIndex: index,
-    hoverSelectors: [
-      '[itemprop="name"] a',
-      '[data-testid="repository-description"]',
-      '#readme h1, #readme h2, article.markdown-body h1, article.markdown-body h2',
-      'article.markdown-body pre, article.markdown-body h3, #readme article h3',
-    ],
-    scrollSequence: [...DEFAULT_SCROLL_SEQUENCE],
-  }));
+export function buildLiveExecutionPlan(plan: HarnessRecordingPlan): LiveExecutionPlan {
+  return {
+    introLeadInMs: plan.introLeadInMs,
+    tabs: plan.tabs,
+    repoExecutions: plan.repos.map((repo) => buildRepoExecution(repo)),
+  };
 }
 
+export function buildTabStripChromePoint(
+  metrics: BrowserWindowMetrics,
+  tabIndex: number,
+  tabCount: number,
+): { x: number; y: number } | null {
+  const horizontalBorder = Math.max(0, (metrics.outerWidth - metrics.innerWidth) / 2);
+  const verticalChrome = Math.max(0, metrics.outerHeight - metrics.innerHeight - horizontalBorder);
+  if (verticalChrome <= 0 || tabCount <= 0) {
+    return null;
+  }
+
+  const usableWidth = Math.max(400, metrics.outerWidth - 240);
+  const tabWidth = Math.max(150, Math.min(240, Math.floor(usableWidth / Math.max(1, tabCount))));
+  const startX = Math.max(120, Math.round(horizontalBorder + 120));
+  const maxTabIndex = Math.max(0, tabCount - 1);
+  const clampedTabIndex = Math.max(0, Math.min(maxTabIndex, tabIndex));
+  const x = startX + (clampedTabIndex * tabWidth) + Math.floor(tabWidth / 2);
+  const y = Math.max(18, Math.min(verticalChrome - 8, Math.round(verticalChrome * 0.42)));
+
+  return { x, y };
+}
+
+function buildRepoExecution(repo: RecordingRepoPlan): LiveRepoExecution {
+  return {
+    repoUrl: repo.repoUrl,
+    slug: repo.slug,
+    name: repo.name,
+    tabIndex: repo.tabIndex,
+    expectedTitleFragment: titleFragmentFromRepoUrl(repo.repoUrl),
+    segmentDurationMs: repo.segmentDurationMs,
+    beats: repo.beats,
+  };
+}

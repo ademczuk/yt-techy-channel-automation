@@ -1,6 +1,12 @@
 import { chromium, type Page } from "playwright";
 import { mouse, Point, straightTo, Button } from "@nut-tree-fork/nut-js";
 import { buildLiveRepoSteps } from "../src/lib/live-playwright-walkthrough";
+import {
+  buildFullscreenBrowserLaunchArgs,
+  isRedundantSelfClick,
+  resolveSafeBrowserScreenPoint,
+  smoothScrollPage,
+} from "../src/lib/live-playwright-demo";
 
 const DEFAULT_REPOS = [
   "https://github.com/bytedance/deer-flow",
@@ -17,6 +23,12 @@ function getDelayMs(name: string, fallback: number): number {
   const value = getArgValue(name);
   const parsed = value ? Number.parseInt(value, 10) : fallback;
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function getCountArg(name: string, fallback: number): number {
+  const value = getArgValue(name);
+  const parsed = value ? Number.parseInt(value, 10) : fallback;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 async function moveMouseToSelector(page: Page, selector: string): Promise<boolean> {
@@ -36,34 +48,34 @@ async function moveMouseToSelector(page: Page, selector: string): Promise<boolea
   // Also get window position relative to screen so we can move the OS mouse
   const windowPos = await page.evaluate(() => {
     return {
-      x: window.screenX,
-      y: window.screenY,
+      screenX: window.screenX,
+      screenY: window.screenY,
+      outerWidth: window.outerWidth,
       outerHeight: window.outerHeight,
+      innerWidth: window.innerWidth,
       innerHeight: window.innerHeight,
     };
   });
-  
-  // Approximate the viewport offset from the window
-  // (Toolbars + address bar usually take up the difference)
-  const chromeUiHeight = Math.max(0, windowPos.outerHeight - windowPos.innerHeight);
-  
-  const screenX = Math.round(windowPos.x + x);
-  const screenY = Math.round(windowPos.y + chromeUiHeight + y);
 
   // Move both Playwright's virtual mouse (for hover states)
   await page.mouse.move(x, y, { steps: 32 });
-  
+
+  const safePoint = resolveSafeBrowserScreenPoint(windowPos, { x, y });
+  if (!safePoint) {
+    return false;
+  }
+
   // Move the REAL OS mouse (for Cursorful/Recordly capture)
-  await mouse.move(straightTo(new Point(screenX, screenY)));
+  await mouse.move(straightTo(new Point(safePoint.screenX, safePoint.screenY)));
   
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(180);
   return true;
 }
 
 async function runRepoPass(page: Page, repoUrl: string, expectedTitleFragment: string, hoverSelectors: string[], scrollSequence: number[]): Promise<void> {
   await page.goto(repoUrl, { waitUntil: "domcontentloaded" });
   await page.waitForLoadState("networkidle").catch(() => undefined);
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(450);
   await page.waitForFunction(
     (fragment) => document.title.toLowerCase().includes(String(fragment).toLowerCase()),
     expectedTitleFragment,
@@ -71,40 +83,50 @@ async function runRepoPass(page: Page, repoUrl: string, expectedTitleFragment: s
   );
 
   for (const selector of hoverSelectors) {
-    await page.locator(selector).first().scrollIntoViewIfNeeded().catch(() => undefined);
-    await page.waitForTimeout(350);
     const didMove = await moveMouseToSelector(page, selector);
-    if (didMove && (selector.includes("a") || selector.includes("button"))) {
-      // Actually click it with the real mouse
+    if (didMove && await shouldClickSelector(page, selector, repoUrl)) {
       await mouse.click(Button.LEFT);
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(550);
     }
   }
 
   for (const delta of scrollSequence) {
-    // We can use native OS scrolling: mouse.scrollDown/scrollUp
-    if (delta > 0) {
-      await mouse.scrollDown(5);
-    } else {
-      await mouse.scrollUp(5);
-    }
-    await page.mouse.wheel(0, delta);
-    await page.waitForTimeout(delta > 0 ? 900 : 700);
+    await smoothScrollPage(page, delta, 900);
+  }
+}
+
+async function shouldClickSelector(page: Page, selector: string, repoUrl: string): Promise<boolean> {
+  if (!(selector.includes("a") || selector.includes("button"))) {
+    return false;
+  }
+
+  const locator = page.locator(selector).first();
+  const href = await locator.getAttribute("href").catch(() => null);
+  const currentUrl = await safePageUrl(page, repoUrl);
+  return !isRedundantSelfClick(currentUrl, href);
+}
+
+async function safePageUrl(page: Page, fallback: string): Promise<string> {
+  try {
+    return page.url();
+  } catch {
+    return fallback;
   }
 }
 
 async function main() {
   mouse.config.mouseSpeed = 600; // pixels per second
-  const repoUrls = DEFAULT_REPOS;
+  const repoLimit = getCountArg("--repo-limit", DEFAULT_REPOS.length);
+  const repoUrls = DEFAULT_REPOS.slice(0, repoLimit);
   const preflightMs = getDelayMs("--preflight-ms", 0);
-  const startDelayMs = getDelayMs("--start-delay-ms", 4_000);
-  const betweenTabsMs = getDelayMs("--between-tabs-ms", 1_200);
+  const startDelayMs = getDelayMs("--start-delay-ms", 1_200);
+  const betweenTabsMs = getDelayMs("--between-tabs-ms", 250);
   const steps = buildLiveRepoSteps(repoUrls);
 
   const browser = await chromium.launch({
     headless: false,
-    slowMo: 40,
-    args: ["--start-maximized"],
+    slowMo: 0,
+    args: buildFullscreenBrowserLaunchArgs({ width: 1920, height: 1080 }),
   });
 
   const context = await browser.newContext({

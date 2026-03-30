@@ -1,0 +1,5 @@
+{
+  "apiKey": "replace-me",
+  "baseUrl": "https://api.openai.com/v1",
+  "model": "gpt-5.2"
+}

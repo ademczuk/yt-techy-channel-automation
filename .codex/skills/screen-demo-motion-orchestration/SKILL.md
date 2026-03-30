@@ -15,12 +15,14 @@ Use this project-local skill when the recording works technically but still look
 - Build browse actions from those narration beats
 - Prefer selector candidate lists over one brittle selector
 - Let Steel own the visible cursor path with `humanizeInteractions` and `systemCursor`
+- For local Playwright capture lanes, preserve real OS mouse movement and real OS clicks when those are available
 - Use custom motion code to decide targets and circle geometry, not to fight Steel's cursor engine
 - Route cursor travel through a safe mid-page lane when moving between distant targets so GitHub top navigation does not get triggered
 - Draw one or two circles on key focus targets
-- Scroll as a full visible action from start to finish, using smaller segmented motion over time instead of jump cuts
+- Scroll as a full visible action from start to finish, using segmented smooth in-page motion over time instead of jump cuts or jittery double-scroll behavior
 - Only zoom in on selectively important focus targets, then release back to full-frame after the focus window ends
 - Treat link and video actions as optional unless the prompt requires them
+- When recording locally, maximize or fullscreen the browser window before capture so the output frames the product surface instead of the surrounding desktop
 
 ## Steel Requirement
 

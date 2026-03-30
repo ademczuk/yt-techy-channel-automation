@@ -32,17 +32,19 @@ export async function renderScreenDemoFromProps(input: {
 function syncRenderAssetsIntoBundle(
   bundleLocation: string,
   rootDir: string,
-  inputProps: { recordingSrc?: string },
+  inputProps: { recordingSrc?: string; audioTracks?: Array<{ src: string }> },
 ) {
-  const recordingSrc = inputProps.recordingSrc;
-  if (!recordingSrc || !recordingSrc.startsWith("/")) {
-    return;
+  const assetPaths = [
+    inputProps.recordingSrc,
+    ...(inputProps.audioTracks ?? []).map((track) => track.src),
+  ].filter((entry): entry is string => Boolean(entry) && entry.startsWith("/"));
+
+  for (const assetSrc of assetPaths) {
+    const relativeAssetPath = assetSrc.replace(/^\/+/, "").replace(/\//g, path.sep);
+    const sourcePath = path.join(rootDir, "public", relativeAssetPath);
+    const destPath = path.join(bundleLocation, relativeAssetPath);
+
+    fs.mkdirSync(path.dirname(destPath), { recursive: true });
+    fs.copyFileSync(sourcePath, destPath);
   }
-
-  const relativeAssetPath = recordingSrc.replace(/^\/+/, "").replace(/\//g, path.sep);
-  const sourcePath = path.join(rootDir, "public", relativeAssetPath);
-  const destPath = path.join(bundleLocation, relativeAssetPath);
-
-  fs.mkdirSync(path.dirname(destPath), { recursive: true });
-  fs.copyFileSync(sourcePath, destPath);
 }
